@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AutoresponderExcelCreator.ExcelAnswersTemplate
 {
-    internal class VariablesWorksheet : IExcelWorksheetTemplate
+    internal class VariablesWorksheet : ExcelWorksheetTemplate
     {
         private readonly List<(string key, string value)> _variablesAndValue = new List<(string, string)>
         {
@@ -25,32 +25,18 @@ namespace AutoresponderExcelCreator.ExcelAnswersTemplate
             ColumnWithValue
         }
 
-        public string WorksheetName => "Recommendations";
+        internal override string WorksheetName => "Variables";
 
-        private void FillWorksheet(IXLWorksheet xLWorksheet)
+        internal override void FillWorksheet(IXLWorksheet xLWorksheet)
         {
             xLWorksheet.Cell(1, (int)Titles.ColumnWithVariable).Value = "Переменная";
             xLWorksheet.Cell(1, (int)Titles.ColumnWithValue).Value = "Значение";
             int numRow = 2;
-            foreach(var variable in _variablesAndValue)
+            foreach (var variable in _variablesAndValue)
             {
                 xLWorksheet.Cell(numRow, (int)Titles.ColumnWithVariable).Value = variable.key;
                 xLWorksheet.Cell(numRow, (int)Titles.ColumnWithValue).Value = variable.value;
                 numRow += 1;
-            }
-        }
-
-        public void AddNewWorksheetTamplate(IXLWorkbook xLWorkbook)
-        {
-            try
-            {
-                xLWorkbook.AddWorksheet(WorksheetName);
-                IXLWorksheet xLWorksheet = xLWorkbook.Worksheet(WorksheetName);
-                FillWorksheet(xLWorksheet);
-            }
-            catch
-            {
-
             }
         }
     }
