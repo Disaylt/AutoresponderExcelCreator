@@ -136,11 +136,11 @@
             return answerText;
         }
 
-        private string ReplaceRecommendationProductInfo(string answerText, RecommendationProductInfo recommendationProductInfo)
+        private string ReplaceRecommendationProductInfo(string answerText, RecommendationProductInfo? recommendationProductInfo)
         {
-            answerText = answerText.Replace("$buy_item$", recommendationProductInfo.BuyProductName);
-            answerText = answerText.Replace("$ref_item$", recommendationProductInfo.RecommendationName);
-            answerText = answerText.Replace("$ref_id$", recommendationProductInfo.RecommendationId);
+            answerText = answerText.Replace("$buy_item$", recommendationProductInfo?.BuyProductName ?? string.Empty);
+            answerText = answerText.Replace("$ref_item$", recommendationProductInfo?.RecommendationName ?? string.Empty);
+            answerText = answerText.Replace("$ref_id$", recommendationProductInfo?.RecommendationId ?? string.Empty);
             return answerText;
         }
 
@@ -186,8 +186,9 @@
                 else
                 {
                     answerText = GetAnswerText("ResponsesWithRecommendation");
-                    answerText = ReplaceRecommendationProductInfo(answerText, recommendationProductInfo);
                 }
+
+                answerText = ReplaceRecommendationProductInfo(answerText, recommendationProductInfo);
                 answerText = ReplaceUserName(answerText, username);
                 answerText = ReplaceCustomVariables(answerText);
 
