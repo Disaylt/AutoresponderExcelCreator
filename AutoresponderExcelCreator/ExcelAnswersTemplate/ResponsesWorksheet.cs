@@ -8,7 +8,7 @@ namespace AutoresponderExcelCreator.ExcelAnswersTemplate
 {
     internal class ResponsesWorksheet : ExcelWorksheetTemplate
     {
-        internal override string WorksheetName => "Pesponses";
+        internal override string WorksheetName => "Responses";
 
         internal override void FillWorksheet(IXLWorksheet xLWorksheet)
         {

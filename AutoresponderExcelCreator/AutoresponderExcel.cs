@@ -56,7 +56,7 @@
                 string[] availableBrands = Directory.GetFiles(_directoryBrandExcelTemplates, "*.xlsx")
                     .Select(x => Path.GetFileName(x))
                     .ToArray();
-                if(availableBrands.Contains(brand))
+                if (availableBrands.Contains($"{brand}.xlsx"))
                 {
                     workbook = new XLWorkbook($@"{_directoryBrandExcelTemplates}\{brand}.xlsx");
                 }
@@ -123,10 +123,11 @@
             string answerText = string.Empty;
             if(workbook.TryGetWorksheet(sheetName, out var sheet))
             {
-                foreach(var culumn in sheet.ColumnsUsed())
+                foreach(var cell in sheet.Row(1).CellsUsed())
                 {
-                    string pieceText = GetPieceText(culumn);
-                    if(string.IsNullOrEmpty(pieceText))
+                    var column = sheet.Column(cell.Address.ColumnNumber);
+                    string pieceText = GetPieceText(column);
+                    if(!string.IsNullOrEmpty(pieceText))
                     {
                         answerText += $"{pieceText} ";
                     }
@@ -145,10 +146,7 @@
 
         private string ReplaceUserName(string answerText, string userName)
         {
-            if(!string.IsNullOrEmpty(userName))
-            {
-                answerText = answerText.Replace("$buyer_name$", userName);
-            }
+            answerText = answerText.Replace("$buyer_name$", userName);
             return answerText;
         }
 
@@ -176,24 +174,31 @@
 
         public string? GetResponseText(string feedbackText, string brand, string productId, string username = "")
         {
-            string answerText;
-            if(_blackListHandler.CheckBanWords(feedbackText)) { return null; }
-            UpdateExcel(brand);
-            RecommendationProductInfo? recommendationProductInfo = GetRecommendationInfo(productId);
+            try
+            {
+                string answerText;
+                if (_blackListHandler.CheckBanWords(feedbackText)) { return null; }
+                UpdateExcel(brand);
+                RecommendationProductInfo? recommendationProductInfo = GetRecommendationInfo(productId);
 
-            if(recommendationProductInfo == null)
-            { answerText = GetAnswerText("Pesponses"); }
-            else 
-            { 
-                answerText = GetAnswerText("ResponsesWithRecommendation");
-                answerText = ReplaceRecommendationProductInfo(answerText, recommendationProductInfo);
+                if (recommendationProductInfo == null)
+                { answerText = GetAnswerText("Responses"); }
+                else
+                {
+                    answerText = GetAnswerText("ResponsesWithRecommendation");
+                    answerText = ReplaceRecommendationProductInfo(answerText, recommendationProductInfo);
+                }
+                answerText = ReplaceUserName(answerText, username);
+                answerText = ReplaceCustomVariables(answerText);
+
+                if (CheckTextForVariables(answerText)) { return null; }
+
+                return answerText;
             }
-            answerText = ReplaceUserName(answerText, username);
-            answerText = ReplaceCustomVariables(answerText);
-
-            if(CheckTextForVariables(answerText)) { return null; }
-
-            return answerText;
+            catch
+            {
+                return null;
+            }
         }
     }
 }
