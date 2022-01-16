@@ -33,7 +33,7 @@
                     string key = row.Cell(1).Value?.ToString()?.Trim() ?? string.Empty;
                     if(!key.StartsWith('$') || !key.EndsWith('$')) { key = string.Empty; }
                     string value = row.Cell(2).Value?.ToString()?.Trim() ?? string.Empty;
-                    if(!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(key))
+                    if(!string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(key))
                     {
                         if(variablesKeyAndValues.ContainsKey(key))
                         {
