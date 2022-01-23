@@ -3,22 +3,26 @@
     public class AutoresponderExcel
     {
         private readonly BlackListHandler _blackListHandler;
+        private readonly IdTempaltes _idTempaltes;
         private readonly string _directoryBrandExcelTemplates;
         private readonly string _pathToStandardExcelTemplate;
         private string _lastUseBrand;
         private Random _random;
         private IXLWorkbook? workbook { get; set; }
         private Dictionary<string, List<string>> variablesKeyAndValues { get; set; }
+        public List<string> ExceptionMessages { get; }
         
 
-        public AutoresponderExcel(string pathToStandardExcelTemplate, string directoryBrandExcelTemplates, string pathToBlackList)
+        public AutoresponderExcel(string pathToStandardExcelTemplate, string directoryBrandExcelTemplates, string pathToBlackList, string pathToIdTemplate)
         {
+            _idTempaltes = new IdTempaltes(pathToIdTemplate);
             _blackListHandler = new BlackListHandler(pathToBlackList);
             _lastUseBrand = string.Empty;
             _directoryBrandExcelTemplates = directoryBrandExcelTemplates;
             _pathToStandardExcelTemplate = pathToStandardExcelTemplate;
             _random = new Random();
             variablesKeyAndValues = new Dictionary<string, List<string>>();
+            ExceptionMessages = new List<string>();
         }
 
         private void UpdateVariables()
@@ -49,26 +53,39 @@
             }
         }
 
-        private void UpdateExcel(string brand)
+        private void UpdateExcel(string? brand, string? productId)
         {
-            if(workbook == null || _lastUseBrand != brand)
+            string? templateName;
+            string? idTemplate = _idTempaltes.GetIdTemplate(productId);
+            if (!string.IsNullOrEmpty(idTemplate))
+            {
+                templateName = idTemplate;
+            }
+            else
+            {
+                templateName = brand;
+            }
+
+            if (workbook == null || _lastUseBrand != templateName)
             {
                 string[] availableBrands = Directory.GetFiles(_directoryBrandExcelTemplates, "*.xlsx")
                     .Select(x => Path.GetFileName(x))
                     .ToArray();
-                if (availableBrands.Contains($"{brand}.xlsx"))
+
+                if (availableBrands.Contains($"{templateName}.xlsx"))
                 {
-                    workbook = new XLWorkbook($@"{_directoryBrandExcelTemplates}\{brand}.xlsx");
+                    workbook = new XLWorkbook($@"{_directoryBrandExcelTemplates}\{templateName}.xlsx");
                 }
                 else
                 {
                     workbook = new XLWorkbook(_pathToStandardExcelTemplate);
                 }
                 UpdateVariables();
+                _lastUseBrand = templateName ?? string.Empty;
             }
         }
 
-        private RecommendationProductInfo? GetRecommendationInfo(string productId)
+        private RecommendationProductInfo? GetRecommendationInfo(string? productId)
         {
             string sheetName = "Recommendations";
             if (workbook.TryGetWorksheet(sheetName, out var sheet))
@@ -144,7 +161,7 @@
             return answerText;
         }
 
-        private string ReplaceUserName(string answerText, string userName)
+        private string ReplaceUserName(string answerText, string? userName)
         {
             answerText = answerText.Replace("$buyer_name$", userName);
             return answerText;
@@ -172,13 +189,13 @@
             }
         }
 
-        public string? GetResponseText(string feedbackText, string brand, string productId, string username = "")
+        public string? GetResponseText(string? feedbackText, string? brand, string? productId, string? username = "")
         {
             try
             {
                 string answerText;
                 if (_blackListHandler.CheckBanWords(feedbackText)) { return null; }
-                UpdateExcel(brand);
+                UpdateExcel(brand, productId);
                 RecommendationProductInfo? recommendationProductInfo = GetRecommendationInfo(productId);
 
                 if (recommendationProductInfo == null)
@@ -196,8 +213,9 @@
 
                 return answerText;
             }
-            catch
+            catch (Exception ex)
             {
+                ExceptionMessages.Add($"FeedbackText: {feedbackText}; Id: {productId}; Error: {ex.Message}");
                 return null;
             }
         }

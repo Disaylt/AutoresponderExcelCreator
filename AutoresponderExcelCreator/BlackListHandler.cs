@@ -30,16 +30,19 @@ namespace AutoresponderExcelCreator
             _pathToBlackList = path;
         }
 
-        internal bool CheckBanWords(string text)
+        internal bool CheckBanWords(string? text)
         {
             bool isBanWords = false;
-            string lowerText = text.ToLower();
-            foreach(string banWord in banWords)
+            if (!string.IsNullOrEmpty(text))
             {
-                if(lowerText.Contains(banWord))
+                string lowerText = text.ToLower();
+                foreach (string banWord in banWords)
                 {
-                    isBanWords = true;
-                    break;
+                    if (lowerText.Contains(banWord))
+                    {
+                        isBanWords = true;
+                        break;
+                    }
                 }
             }
             return isBanWords;
