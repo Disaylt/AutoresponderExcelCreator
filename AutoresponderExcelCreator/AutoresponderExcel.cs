@@ -227,17 +227,17 @@
                 if(userRecommendationProductInfo != null)
                 {
                     answerText = GetAnswerText("ResponsesWithUserRecommendation");
+                    answerText = ReplaceRecommendationProductInfo(answerText, userRecommendationProductInfo);
                 }
                 else if (recommendationProductInfo != null)
                 { 
                     answerText = GetAnswerText("ResponsesWithRecommendation");
+                    answerText = ReplaceRecommendationProductInfo(answerText, recommendationProductInfo);
                 }
                 else
                 {
                     answerText = GetAnswerText("Responses");
                 }
-
-                answerText = ReplaceRecommendationProductInfo(answerText, recommendationProductInfo);
                 answerText = ReplaceUserName(answerText, username);
                 answerText = ReplaceCustomVariables(answerText);
 
