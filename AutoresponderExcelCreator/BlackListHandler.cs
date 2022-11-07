@@ -17,7 +17,7 @@ namespace AutoresponderExcelCreator
                 if(_banWords == null)
                 {
                     _banWords = File
-                        .ReadAllLines(_pathToBlackList)
+                        .ReadAllLines(_pathToBlackList, Encoding.UTF8)
                         .Select(x => x.ToLower().Trim())
                         .ToList();
                 }
