@@ -85,6 +85,31 @@
             }
         }
 
+        private RecommendationProductInfo? GetGetRecommendationUserInfo(string? userName, string? producId = "")
+        {
+            string sheetName = "UserRecommendations";
+            if(!string.IsNullOrEmpty(userName) && workbook.TryGetWorksheet(sheetName, out var sheet))
+            {
+                List<RecommendationProductInfo> productsInfo = sheet
+                    .RowsUsed()
+                    .Where(x => x.Cell(1).GetString().ToLower() == userName.ToLower() && (x.Cell(2).GetString() == string.Empty || x.Cell(2).GetString() == producId))
+                    .Select(x => new RecommendationProductInfo
+                    {
+                        BuyProductName = x.Cell(3).GetString(),
+                        RecommendationId = x.Cell(4).GetString(),
+                        RecommendationName = x.Cell(5).GetString()
+                    })
+                    .ToList();
+                if(productsInfo.Count != 0)
+                {
+                    var productInfo = productsInfo.ElementAt(_random.Next(0, productsInfo.Count));
+                    return productInfo;
+                }
+            }
+
+            return null;
+        }
+
         private RecommendationProductInfo? GetRecommendationInfo(string? productId)
         {
             string sheetName = "Recommendations";
@@ -197,15 +222,22 @@
                 if (_blackListHandler.CheckBanWords(feedbackText)) { return null; }
                 UpdateExcel(brand, productId);
                 RecommendationProductInfo? recommendationProductInfo = GetRecommendationInfo(productId);
+                RecommendationProductInfo? userRecommendationProductInfo = GetGetRecommendationUserInfo(username, productId);
 
-                if (recommendationProductInfo == null)
-                { answerText = GetAnswerText("Responses"); }
+                if(userRecommendationProductInfo != null)
+                {
+                    answerText = GetAnswerText("ResponsesWithUserRecommendation");
+                    answerText = ReplaceRecommendationProductInfo(answerText, userRecommendationProductInfo);
+                }
+                else if (recommendationProductInfo != null)
+                { 
+                    answerText = GetAnswerText("ResponsesWithRecommendation");
+                    answerText = ReplaceRecommendationProductInfo(answerText, recommendationProductInfo);
+                }
                 else
                 {
-                    answerText = GetAnswerText("ResponsesWithRecommendation");
+                    answerText = GetAnswerText("Responses");
                 }
-
-                answerText = ReplaceRecommendationProductInfo(answerText, recommendationProductInfo);
                 answerText = ReplaceUserName(answerText, username);
                 answerText = ReplaceCustomVariables(answerText);
 
